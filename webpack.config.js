@@ -1,12 +1,21 @@
 const path = require('path')
 
+const phaserModule = path.join(__dirname, '/node_modules/phaser-ce')
 const PATHS = {
   app: path.join(__dirname, 'app'),
-  build: path.join(__dirname, 'build')
+  build: path.join(__dirname, 'build'),
+  img: path.join(__dirname, 'assets', 'img'),
+  phaser: path.join(phaserModule, 'build/custom/phaser-split.js'),
+  pixi: path.join(phaserModule, 'build/custom/pixi.js'),
+  p2: path.join(phaserModule, 'build/custom/p2.js')
 }
 
 module.exports = {
-  entry: path.join(PATHS.app, 'index.js'),
+  entry: [
+    'babel-polyfill',
+    path.join(PATHS.img, 'phaser.png'),
+    path.join(PATHS.app, 'index.js')
+  ],
   output: {
     filename: 'bundle.js',
     path: PATHS.build,
@@ -30,7 +39,30 @@ module.exports = {
             'es2015'
           ]
         }
+      },
+      {
+        test: /pixi.js/,
+        loader: 'expose?PIXI'
+      },
+      {
+        test: /phaser-split\.js/,
+        loader: 'expose?Phaser'
+      },
+      {
+        test: /p2\.js/,
+        loader: 'expose?p2'
+      },
+      {
+        test: /\.(png|jpg)$/,
+        loader: 'file?name=img/[name].[ext]'
       }
     ]
+  },
+  resolve: {
+    alias: {
+      'phaser': PATHS.phaser,
+      'pixi': PATHS.pixi,
+      'p2': PATHS.p2
+    }
   }
 }
