@@ -46,7 +46,10 @@
 
 	__webpack_require__(1);
 	__webpack_require__(298);
-	module.exports = __webpack_require__(299);
+	__webpack_require__(299);
+	__webpack_require__(300);
+	__webpack_require__(301);
+	module.exports = __webpack_require__(302);
 
 
 /***/ },
@@ -8193,44 +8196,164 @@
 /* 298 */
 /***/ function(module, exports, __webpack_require__) {
 
-	module.exports = __webpack_require__.p + "img/phaser.png";
+	module.exports = __webpack_require__.p + "img/player.png";
 
 /***/ },
 /* 299 */
 /***/ function(module, exports, __webpack_require__) {
 
-	'use strict';
-
-	__webpack_require__(300);
-
-	__webpack_require__(302);
-
-	var _phaser = __webpack_require__(304);
-
-	var _phaser2 = _interopRequireDefault(_phaser);
-
-	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-	var game = new _phaser2.default.Game(800, 600, _phaser2.default.AUTO, '', { preload: preload, create: create });
-
-	var preload = function preload() {
-	  game.load.image('logo', 'static/img/phaser.png');
-	};
-
-	var create = function create() {
-	  var logo = game.add.sprite(game.world.centerX, game.world.centerY, 'logo');
-	  logo.anchor.setTo(0.5, 0.5);
-	};
+	module.exports = __webpack_require__.p + "img/wall.png";
 
 /***/ },
 /* 300 */
 /***/ function(module, exports, __webpack_require__) {
 
-	/* WEBPACK VAR INJECTION */(function(global) {module.exports = global["PIXI"] = __webpack_require__(301);
-	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
+	module.exports = __webpack_require__.p + "img/coin.png";
 
 /***/ },
 /* 301 */
+/***/ function(module, exports, __webpack_require__) {
+
+	module.exports = __webpack_require__.p + "img/lava.png";
+
+/***/ },
+/* 302 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	__webpack_require__(303);
+
+	__webpack_require__(305);
+
+	var _phaser = __webpack_require__(307);
+
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+	var MAIN_KEY = 'main';
+	var PLAYER = 'player';
+	var COIN = 'coin';
+	var LAVA = 'lava';
+	var WALL = 'wall';
+	var GAME_IMAGES = [PLAYER, COIN, LAVA, WALL];
+
+	var MainState = function (_State) {
+	  _inherits(MainState, _State);
+
+	  function MainState() {
+	    _classCallCheck(this, MainState);
+
+	    var _this = _possibleConstructorReturn(this, (MainState.__proto__ || Object.getPrototypeOf(MainState)).call(this));
+
+	    _this.preload = function () {
+	      var _iteratorNormalCompletion = true;
+	      var _didIteratorError = false;
+	      var _iteratorError = undefined;
+
+	      try {
+	        for (var _iterator = GAME_IMAGES[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+	          var img = _step.value;
+
+	          game.load.image(img, 'static/img/' + img + '.png');
+	        }
+	      } catch (err) {
+	        _didIteratorError = true;
+	        _iteratorError = err;
+	      } finally {
+	        try {
+	          if (!_iteratorNormalCompletion && _iterator.return) {
+	            _iterator.return();
+	          }
+	        } finally {
+	          if (_didIteratorError) {
+	            throw _iteratorError;
+	          }
+	        }
+	      }
+	    };
+
+	    _this.create = function () {
+	      game.stage.backgroundColor = '#3598db';
+	      game.physics.startSystem(_phaser.Physics.ARCADE);
+	      game.world.enableBody = true;
+
+	      _this.cursor = game.input.keyboard.createCursorKeys();
+	      _this.player = game.add.sprite(70, 100, PLAYER);
+	      _this.player.body.gravity.y = 600;
+
+	      _this.walls = game.add.group();
+	      _this.coins = game.add.group();
+	      _this.lavas = game.add.group();
+
+	      var level = ['xxxxxxxxxxxxxxxxxxxx', 'x        !         x', 'x               0  x', 'x        0         x', 'x                  x', 'x                  x', 'x  0     !         x', 'xxxxxxxxxxxxxxx!!!!x'];
+	      level.forEach(function (row, i) {
+	        row.split('').forEach(function (c, j) {
+	          if (c === 'x') {
+	            var wall = game.add.sprite(25 * j, 25 * i, WALL);
+	            _this.walls.add(wall);
+	            wall.body.immovable = true;
+	          } else if (c === '0') {
+	            var coin = game.add.sprite(25 * j, 25 * i, COIN);
+	            _this.coins.add(coin);
+	          } else if (c === '!') {
+	            var lava = game.add.sprite(25 * j, 25 * i, LAVA);
+	            _this.lavas.add(lava);
+	          }
+	        });
+	      });
+	    };
+
+	    _this.update = function () {
+	      if (_this.cursor.left.isDown) {
+	        _this.player.body.velocity.x = -200;
+	      } else if (_this.cursor.right.isDown) {
+	        _this.player.body.velocity.x = 200;
+	      } else {
+	        _this.player.body.velocity.x = 0;
+	      }
+
+	      if (_this.cursor.up.isDown && _this.player.body.touching.down) {
+	        _this.player.body.velocity.y = -250;
+	      }
+
+	      game.physics.arcade.collide(_this.player, _this.walls);
+
+	      game.physics.arcade.overlap(_this.player, _this.coins, _this.takeCoin, null, _this);
+
+	      game.physics.arcade.overlap(_this.player, _this.enemies, _this.restart, null, _this);
+	    };
+
+	    _this.takeCoin = function (player, coin) {
+	      coin.kill();
+	    };
+
+	    _this.restart = function () {
+	      game.state.start(MAIN_KEY);
+	    };
+
+	    return _this;
+	  }
+
+	  return MainState;
+	}(_phaser.State);
+
+	var game = new _phaser.Game(500, 200);
+	game.state.add(MAIN_KEY, MainState);
+	game.state.start(MAIN_KEY);
+
+/***/ },
+/* 303 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/* WEBPACK VAR INJECTION */(function(global) {module.exports = global["PIXI"] = __webpack_require__(304);
+	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
+
+/***/ },
+/* 304 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -15715,14 +15838,14 @@
 	}).call(this);
 
 /***/ },
-/* 302 */
+/* 305 */
 /***/ function(module, exports, __webpack_require__) {
 
-	/* WEBPACK VAR INJECTION */(function(global) {module.exports = global["p2"] = __webpack_require__(303);
+	/* WEBPACK VAR INJECTION */(function(global) {module.exports = global["p2"] = __webpack_require__(306);
 	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
 
 /***/ },
-/* 303 */
+/* 306 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var require;var require;/**
@@ -29365,14 +29488,14 @@
 	});
 
 /***/ },
-/* 304 */
+/* 307 */
 /***/ function(module, exports, __webpack_require__) {
 
-	/* WEBPACK VAR INJECTION */(function(global) {module.exports = global["Phaser"] = __webpack_require__(305);
+	/* WEBPACK VAR INJECTION */(function(global) {module.exports = global["Phaser"] = __webpack_require__(308);
 	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
 
 /***/ },
-/* 305 */
+/* 308 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**
