@@ -6,6 +6,7 @@ Learning phaser game engine; first pass at this
 * clone this repository
 * cd into this repository from the terminal
 * run `npm install` to install the dev and client dependencies
+
 ### How to run
 Run the following in a terminal:
 
@@ -13,6 +14,8 @@ Run the following in a terminal:
 ~$ npm run build
 ~$ npm run start
 ```
+
+Then open `localhost:8080` from your favorite web browser.
 
 
 
