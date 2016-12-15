@@ -8,7 +8,7 @@ Learning phaser game engine; first pass at this
 * run `npm install` to install the dev and client dependencies
 
 ### How to run
-Run the following in a terminal:
+Run the following in a terminal (with this repo as the working directory):
 
 ```
 ~$ npm run build
