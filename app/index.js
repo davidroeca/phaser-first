@@ -7,16 +7,21 @@ const PLAYER = 'player'
 const COIN = 'coin'
 const LAVA = 'lava'
 const WALL = 'wall'
+const FLAP = 'flap'
 const GAME_IMAGES = [
-  PLAYER,
   COIN,
   LAVA,
   WALL
 ]
 
+const _flipSprite = (sprite) => {
+  sprite.scale.x *= -1
+}
+
 class MainState extends State {
 
   preload() {
+    game.load.spritesheet(PLAYER, `static/img/${PLAYER}.png`, 25, 25)
     for (let img of GAME_IMAGES) {
       this.game.load.image(img, `static/img/${img}.png`)
     }
@@ -28,8 +33,11 @@ class MainState extends State {
     this.game.world.enableBody = true
 
     this.cursor = game.input.keyboard.createCursorKeys()
-    this.player = game.add.sprite(70, 100, PLAYER)
-    this.player.body.gravity.y = 600
+    this.playerFacingLeft = true
+    this.player = game.add.sprite(70, 300, PLAYER)
+    this.player.anchor.setTo(0.5, 0.5)
+    this.player.animations.add(FLAP)
+    this.player.body.gravity.y = 800
 
     this.walls = game.add.group()
     this.coins = game.add.group()
@@ -39,8 +47,20 @@ class MainState extends State {
     const level = [
       'xxxxxxxxxxxxxxxxxxxx',
       '!        !         x',
-      '!               0  x',
-      '!        0         x',
+      '!     x     x   0  x',
+      '!     xxxxxxx      x',
+      '!                  x',
+      '!x                 x',
+      '!       xxx        x',
+      '!                  x',
+      '!                  x',
+      '!   xx!     xx!    x',
+      '!                  x',
+      '!                  x',
+      '!          x!      x',
+      '!                  x',
+      '!                  x',
+      '!     !x           x',
       '!                  x',
       '!                  x',
       '!  0     !         x',
@@ -70,16 +90,29 @@ class MainState extends State {
 
     this.game.physics.arcade.overlap(this.player, this.lavas, this.restart, null, this)
 
+    if (!this.player.body.touching.down) {
+      this.player.animations.play(FLAP, 30, true)
+    } else {
+      this.player.animations.stop(FLAP, true)
+    }
     if (this.cursor.left.isDown) {
+      if (!this.playerFacingLeft) {
+        _flipSprite(this.player)
+        this.playerFacingLeft = true
+      }
       this.player.body.velocity.x = -200
     } else if (this.cursor.right.isDown) {
+      if (this.playerFacingLeft) {
+        _flipSprite(this.player)
+        this.playerFacingLeft = false
+      }
       this.player.body.velocity.x = 200
     } else {
       this.player.body.velocity.x = 0
     }
 
     if (this.cursor.up.isDown && this.player.body.touching.down) {
-      this.player.body.velocity.y = -300
+      this.player.body.velocity.y = -400
     }
   }
 
@@ -92,7 +125,7 @@ class MainState extends State {
   }
 }
 
-const game = new Game(500, 200)
+const game = new Game(500, 500)
 game.state.add(MAIN_KEY, MainState, false)
 game.state.start(MAIN_KEY)
 
