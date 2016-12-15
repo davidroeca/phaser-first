@@ -45,26 +45,26 @@ class MainState extends State {
 
 
     const level = [
-      'xxxxxxxxxxxxxxxxxxxx',
-      '!        !         x',
-      '!     x     x   0  x',
-      '!     xxxxxxx      x',
-      '!                  x',
-      '!x                 x',
-      '!       xxx        x',
-      '!                  x',
-      '!                  x',
-      '!   xx!     xx!    x',
-      '!                  x',
-      '!                  x',
-      '!          x!      x',
-      '!                  x',
-      '!                  x',
-      '!     !x           x',
-      '!                  x',
-      '!                  x',
-      '!  0     !         x',
-      'xxxxxxxxxxxxxxx!!!!x',
+      'xxxxxxxxx!xxxxxxxxxx',
+      'x                 !x',
+      'x        0  x   0 !x',
+      'x    xxxxxxxxxx   !x',
+      'x             x   !x',
+      'xx       0    x x!!x',
+      'x       xxx   x    x',
+      'x             x    x',
+      'x             x    x',
+      'x  xxxx!     xx!   x',
+      'x                  x',
+      'x                  x',
+      'x          x!xx    x',
+      'x                  x',
+      'x                  x',
+      'x   xx!x           x',
+      'x          xxxxxx!!x',
+      'x         xxxxxxx!!x',
+      'x  0     xxxxxxxx!!x',
+      'xxxxxxxxxxxxxxxxx!!x',
     ]
     level.forEach((row, i) => {
       row.split('').forEach((c, j) => {
@@ -84,11 +84,11 @@ class MainState extends State {
   }
 
   update() {
-    this.game.physics.arcade.collide(this.player, this.walls)
+    this.game.physics.arcade.overlap(this.player, this.lavas, this.restart, null, this)
 
     this.game.physics.arcade.overlap(this.player, this.coins, this.takeCoin, null, this)
 
-    this.game.physics.arcade.overlap(this.player, this.lavas, this.restart, null, this)
+    this.game.physics.arcade.collide(this.player, this.walls)
 
     if (!this.player.body.touching.down) {
       this.player.animations.play(FLAP, 30, true)
