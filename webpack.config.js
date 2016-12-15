@@ -13,6 +13,8 @@ const PATHS = {
 module.exports = {
   entry: [
     'babel-polyfill',
+    'pixi',
+    'p2',
     path.join(PATHS.img, 'player.png'),
     path.join(PATHS.img, 'wall.png'),
     path.join(PATHS.img, 'coin.png'),

@@ -1,5 +1,5 @@
-import 'pixi'
-import 'p2'
+//import 'pixi'
+//import 'p2'
 import { State, Game, Physics } from 'phaser'
 
 const MAIN_KEY = 'main'
