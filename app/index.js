@@ -86,28 +86,28 @@ class MainState extends State {
       row.split('').forEach((c, j) => {
         if (c === 'x') {
           const wall = game.add.sprite(25 * j, 25 * i, WALL)
-          this.walls.add(wall)
           wall.body.immovable = true
+          this.walls.add(wall)
         } else if (c === '0') {
           const coin = game.add.sprite(25 * j, 25 * i, COIN)
           this.coins.add(coin)
         } else if (c === '!') {
           const lava = game.add.sprite(25 * j, 25 * i, LAVA)
+          lava.body.immovable = true
           this.lavas.add(lava)
         } else if (c === 'r') {
           const roller = game.add.sprite(25 * j, 25 * i, ROLLER)
           roller.anchor.setTo(0.5, 0.5)
           roller.animations.add(DEFAULT)
-          roller.animations.play(DEFAULT, 30, true)
+          roller.animations.play(DEFAULT, 15, true)
+          roller.body.setCircle(12.5)
+          roller.body.bounce.x = 1.0
+          roller.body.bounce.y = 1.0
+          roller.body.velocity.x = this.game.rnd.integerInRange(50, 100)
+          roller.body.velocity.y = this.game.rnd.integerInRange(75, 100)
           this.rollers.add(roller)
         }
       })
-    })
-    this.rollers.forEach(roller => {
-      roller.body.bounce.x = 1.0
-      roller.body.bounce.y = 1.0
-      roller.body.velocity.x = this.game.rnd.integerInRange(10, 100)
-      roller.body.velocity.y = this.game.rnd.integerInRange(10, 100)
     })
   }
 
@@ -119,6 +119,7 @@ class MainState extends State {
 
     this.game.physics.arcade.collide(this.player, this.walls)
 
+    this.game.physics.arcade.collide(this.rollers, this.rollers)
     this.game.physics.arcade.collide(this.rollers, this.walls)
     this.game.physics.arcade.collide(this.rollers, this.lavas)
 
