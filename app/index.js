@@ -5,9 +5,11 @@ const MAIN_KEY = 'main'
 
 // Sprite/image keys
 const PLAYER = 'player'
+const ROLLER = 'roller'
+const SLIME = 'slime'
+
 const COIN = 'coin'
 const LAVA = 'lava'
-const ROLLER = 'roller'
 const WALL = 'wall'
 
 // Animation key
@@ -16,7 +18,8 @@ const DEFAULT = 'default'
 // Sprite/image Collections
 const SPRITE_IMAGES = [
   PLAYER,
-  ROLLER
+  ROLLER,
+  SLIME
 ]
 const GAME_IMAGES = [
   COIN,
@@ -58,6 +61,7 @@ class MainState extends State {
     this.coins = game.add.group()
     this.lavas = game.add.group()
     this.rollers = game.add.group()
+    this.slimes = game.add.group()
 
     const level = [
       'xxxxxxxxx!xxxxxxxxxx',
@@ -74,7 +78,7 @@ class MainState extends State {
       'x           r      x',
       'x          xxxx    x',
       'x                  x',
-      'x                  x',
+      'x     s            x',
       'x   xxxx     r     x',
       'x            xxxx!!x',
       'x          xxxxxx!!x',
@@ -100,12 +104,19 @@ class MainState extends State {
           roller.anchor.setTo(0.5, 0.5)
           roller.animations.add(DEFAULT)
           roller.animations.play(DEFAULT, 15, true)
-          roller.body.setCircle(12.5)
-          roller.body.bounce.x = 1.0
-          roller.body.bounce.y = 1.0
+          roller.body.bounce.set(1.0)
           roller.body.velocity.x = this.game.rnd.integerInRange(50, 100)
           roller.body.velocity.y = this.game.rnd.integerInRange(75, 100)
           this.rollers.add(roller)
+        } else if (c === 's') {
+          const slime = game.add.sprite(25 * j, 25 * i, SLIME)
+          slime.body.gravity.y = GRAVITY
+          slime.anchor.setTo(0.5, 0.5)
+          slime.animations.add(DEFAULT)
+          slime.animations.play(DEFAULT, 15, true)
+          slime.body.bounce.x = 1.0
+          slime.body.velocity.x = this.game.rnd.integerInRange(50, 100)
+          this.slimes.add(slime)
         }
       })
     })
@@ -114,6 +125,7 @@ class MainState extends State {
   update() {
     this.game.physics.arcade.overlap(this.player, this.lavas, this.restart, null, this)
     this.game.physics.arcade.overlap(this.player, this.rollers, this.restart, null, this)
+    this.game.physics.arcade.overlap(this.player, this.slimes, this.restart, null, this)
 
     this.game.physics.arcade.overlap(this.player, this.coins, this.takeCoin, null, this)
 
@@ -123,6 +135,11 @@ class MainState extends State {
     this.game.physics.arcade.collide(this.rollers, this.walls)
     this.game.physics.arcade.collide(this.rollers, this.lavas)
 
+    this.game.physics.arcade.collide(this.slimes, this.slimes)
+    this.game.physics.arcade.collide(this.slimes, this.walls)
+    this.game.physics.arcade.collide(this.slimes, this.lavas)
+
+    this.game.physics.arcade.collide(this.rollers, this.slimes)
     if (!this.player.body.touching.down) {
       this.player.animations.play(DEFAULT, 30, true)
     } else {

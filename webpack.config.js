@@ -17,6 +17,7 @@ module.exports = {
     'p2',
     path.join(PATHS.img, 'player.png'),
     path.join(PATHS.img, 'roller.png'),
+    path.join(PATHS.img, 'slime.png'),
     path.join(PATHS.img, 'wall.png'),
     path.join(PATHS.img, 'coin.png'),
     path.join(PATHS.img, 'lava.png'),
