@@ -7,6 +7,10 @@ import {
   COIN,
   LAVA,
   WALL,
+  PLAYER_MATERIAL,
+  ENEMY_MATERIAL,
+  WALL_MATERIAL,
+  COIN_MATERIAL,
   DEFAULT,
   SPRITE_IMAGES,
   GAME_IMAGES,
@@ -29,22 +33,50 @@ class MainState extends State {
   }
 
   create() {
-    this.game.stage.backgroundColor = '#3598db'
-    this.game.physics.startSystem(Physics.ARCADE)
+    this.game.physics.startSystem(Physics.P2JS)
     this.game.world.enableBody = true
+    this.game.physics.p2.setImpactEvents(true)
+    this.game.physics.p2.restitution = 1.0
+    this.game.physics.p2.gravity.y = GRAVITY
 
-    this.cursor = this.game.input.keyboard.createCursorKeys()
-    this.playerFacingLeft = true
-    this.player = this.game.add.sprite(70, 300, PLAYER)
-    this.player.anchor.setTo(0.5, 0.5)
-    this.player.animations.add(DEFAULT)
-    this.player.body.gravity.y = GRAVITY
-
+    this.players = this.game.add.group()
     this.walls = this.game.add.group()
     this.coins = this.game.add.group()
     this.lavas = this.game.add.group()
     this.rollers = this.game.add.group()
     this.slimes = this.game.add.group()
+
+    for (let group of [
+      this.players, this.walls, this.coins, this.lavas, this.rollers, this.slimes
+    ]) {
+      group.enableBody = true
+      group.physicsBodyType = Physics.P2JS
+    }
+
+    const playerMaterial = this.game.physics.p2.createMaterial(PLAYER_MATERIAL)
+    const enemyMaterial = this.game.physics.p2.createMaterial(ENEMY_MATERIAL)
+    const wallMaterial = this.game.physics.p2.createMaterial(WALL_MATERIAL)
+    const coinMaterial = this.game.physics.p2.createMaterial(COIN_MATERIAL)
+    const playerCoinContact = this.game.physics.p2.createContactMaterial(
+      playerMaterial,
+      coinMaterial
+    )
+    playerCoinContact.restitution = 0.0
+    playerCoinContact.friction = 0.0
+
+    const playerWallContact = this.game.physics.p2.createContactMaterial(
+      playerMaterial,
+      wallMaterial
+    )
+    playerWallContact.restitution = 0.0
+    playerWallContact.friction = 0.0
+
+    this.wallsCollisionGroup = this.game.physics.p2.createCollisionGroup()
+    this.coinsCollisionGroup = this.game.physics.p2.createCollisionGroup()
+    this.lavasCollisionGroup = this.game.physics.p2.createCollisionGroup()
+    this.enemyCollisionGroup = this.game.physics.p2.createCollisionGroup()
+    this.playerCollisionGroup = this.game.physics.p2.createCollisionGroup()
+
 
     const level = [
       'xxxxxxxxx!xxxxxxxxxx',
@@ -60,8 +92,8 @@ class MainState extends State {
       'x                  x',
       'x           r      x',
       'x          xxxx    x',
-      'x                  x',
       'x     s            x',
+      'x                  x',
       'x   xxxx     r     x',
       'x            xxxx!!x',
       'x          xxxxxx!!x',
@@ -72,63 +104,98 @@ class MainState extends State {
     level.forEach((row, i) => {
       row.split('').forEach((c, j) => {
         if (c === 'x') {
-          const wall = this.game.add.sprite(25 * j, 25 * i, WALL)
-          wall.body.immovable = true
-          this.walls.add(wall)
+          const wall = this.walls.create(25 * j + 12.5, 25 * i + 12.5, WALL)
+          //wall.anchor.setTo(0.0, 0.0)
+          wall.body.kinematic = true
+          wall.body.setCollisionGroup(this.wallsCollisionGroup)
+          wall.body.setMaterial(wallMaterial)
+          wall.body.collides([
+            this.playerCollisionGroup,
+            this.enemyCollisionGroup
+          ])
         } else if (c === '0') {
-          const coin = this.game.add.sprite(25 * j, 25 * i, COIN)
-          this.coins.add(coin)
+          const coin = this.coins.create(25 * j + 12.5, 25 * i + 12.5, COIN)
+          coin.body.static = true
+          coin.body.setCollisionGroup(this.coinsCollisionGroup)
+          coin.body.setMaterial(coinMaterial)
+          coin.body.collides([
+            this.playerCollisionGroup
+          ])
         } else if (c === '!') {
-          const lava = this.game.add.sprite(25 * j, 25 * i, LAVA)
-          lava.body.immovable = true
-          this.lavas.add(lava)
+          const lava = this.lavas.create(25 * j + 12.5, 25 * i + 12.5, LAVA)
+          lava.body.kinematic = true
+          lava.body.setMaterial(wallMaterial)
+          lava.body.setCollisionGroup(this.lavasCollisionGroup)
+          lava.body.collides([
+            this.enemyCollisionGroup,
+            this.playerCollisionGroup
+          ])
         } else if (c === 'r') {
-          const roller = this.game.add.sprite(25 * j, 25 * i, ROLLER)
-          roller.anchor.setTo(0.5, 0.5)
+          const roller = this.rollers.create(25 * j + 12.5, 25 * i + 12.5, ROLLER)
           roller.animations.add(DEFAULT)
           roller.animations.play(DEFAULT, 15, true)
-          roller.body.bounce.set(1.0)
+          roller.body.setMaterial(enemyMaterial)
+          roller.body.setCircle(12.5)
+          roller.body.fixedRotation = true
+          roller.body.data.gravityScale = 0.0
           roller.body.velocity.x = this.game.rnd.integerInRange(50, 100)
           roller.body.velocity.y = this.game.rnd.integerInRange(75, 100)
-          this.rollers.add(roller)
+          roller.body.setCollisionGroup(this.enemyCollisionGroup)
+          roller.body.collides([
+            this.enemyCollisionGroup,
+            this.playerCollisionGroup,
+            this.wallsCollisionGroup,
+            this.lavasCollisionGroup
+          ])
         } else if (c === 's') {
-          const slime = this.game.add.sprite(25 * j, 25 * i, SLIME)
-          slime.body.gravity.y = GRAVITY
-          slime.anchor.setTo(0.5, 0.5)
+          const slime = this.slimes.create(25 * j + 12.5, 25 * i + 12.5, SLIME)
           slime.animations.add(DEFAULT)
           slime.animations.play(DEFAULT, 15, true)
-          slime.body.bounce.x = 1.0
+          slime.body.setMaterial(enemyMaterial)
+          slime.body.fixedRotation = true
           slime.body.velocity.x = this.game.rnd.integerInRange(50, 100)
-          this.slimes.add(slime)
+          slime.body.setCollisionGroup(this.enemyCollisionGroup)
+          slime.body.collides([
+            this.enemyCollisionGroup,
+            this.playerCollisionGroup,
+            this.wallsCollisionGroup,
+            this.lavasCollisionGroup
+          ])
         }
       })
     })
+
+    this.playerFacingLeft = true
+    this.player = this.players.create(70, 300, PLAYER)
+    this.player.animations.add(DEFAULT)
+    this.player.body.setRectangle(25, 25)
+    this.player.body.setMaterial(playerMaterial)
+    this.player.body.fixedRotation = true
+    this.player.body.setCollisionGroup(this.playerCollisionGroup)
+
+    // Define the ramifications of each collision
+    this.player.body.collides(this.wallsCollisionGroup)
+    this.player.body.collides(
+      [
+        this.lavasCollisionGroup,
+        this.enemyCollisionGroup
+      ],
+      this.restart,
+      this
+    )
+    this.player.body.collides(
+      this.coinsCollisionGroup,
+      this.takeCoin,
+      this
+    )
+
+    this.game.physics.p2.updateBoundsCollisionGroup()
+    this.game.stage.backgroundColor = '#3598db'
+    this.cursor = this.game.input.keyboard.createCursorKeys()
   }
 
   update() {
-    this.game.physics.arcade.overlap(this.player, this.lavas, this.restart, null, this)
-    this.game.physics.arcade.overlap(this.player, this.rollers, this.restart, null, this)
-    this.game.physics.arcade.overlap(this.player, this.slimes, this.restart, null, this)
-
-    this.game.physics.arcade.overlap(this.player, this.coins, this.takeCoin, null, this)
-
-    this.game.physics.arcade.collide(this.player, this.walls)
-
-    this.game.physics.arcade.collide(this.rollers, this.rollers)
-    this.game.physics.arcade.collide(this.rollers, this.walls)
-    this.game.physics.arcade.collide(this.rollers, this.lavas)
-
-    this.game.physics.arcade.collide(this.slimes, this.slimes)
-    this.game.physics.arcade.collide(this.slimes, this.walls)
-    this.game.physics.arcade.collide(this.slimes, this.lavas)
-
-    this.game.physics.arcade.collide(this.rollers, this.slimes)
-
-    if (!this.player.body.touching.down) {
-      this.player.animations.play(DEFAULT, 30, true)
-    } else {
-      this.player.animations.stop(DEFAULT, true)
-    }
+    this.player.animations.play(DEFAULT, 30, true)
     if (this.cursor.left.isDown) {
       if (!this.playerFacingLeft) {
         _flipSprite(this.player)
@@ -145,13 +212,13 @@ class MainState extends State {
       this.player.body.velocity.x = 0
     }
 
-    if (this.cursor.up.isDown && this.player.body.touching.down) {
-      this.player.body.velocity.y = -400
+    if (this.cursor.up.isDown) {
+      this.player.body.velocity.y = -200
     }
   }
 
   takeCoin(player, coin) {
-    coin.kill()
+    coin.sprite.kill()
   }
 
   restart() {

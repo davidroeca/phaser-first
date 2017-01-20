@@ -10,6 +10,12 @@ export const COIN = 'coin'
 export const LAVA = 'lava'
 export const WALL = 'wall'
 
+// Materials
+export const PLAYER_MATERIAL = 'playerMaterial'
+export const ENEMY_MATERIAL = 'enemyMaterial'
+export const WALL_MATERIAL = 'wallMaterial'
+export const COIN_MATERIAL = 'coinMaterial'
+
 // Animation key
 export const DEFAULT = 'default'
 
