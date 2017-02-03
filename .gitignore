@@ -37,3 +37,7 @@ jspm_packages
 .node_repl_history
 
 build/
+
+# Python gitignore stuff
+venv/
+

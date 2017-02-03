@@ -2,7 +2,7 @@ from itertools import chain
 import json
 import sys
 
-def convert_file(name, infile, outfile, scale):
+def convert_file(name: str, infile: str, outfile: str, scale: float):
     with open(infile) as f:
         in_obj = json.loads(f.read())
     [rigidBody] = in_obj['rigidBodies']
@@ -27,5 +27,5 @@ if __name__ == "__main__":
     in_f = sys.argv[2]
     out_f = sys.argv[3]
     scale = float(sys.argv[4])
-    convert_file(name, in_f, out_f)
+    convert_file(name, in_f, out_f, scale)
 
