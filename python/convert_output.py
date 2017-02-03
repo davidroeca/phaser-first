@@ -26,6 +26,6 @@ if __name__ == "__main__":
     name = sys.argv[1]
     in_f = sys.argv[2]
     out_f = sys.argv[3]
-    scale = sys.argv[4]
+    scale = float(sys.argv[4])
     convert_file(name, in_f, out_f)
 
