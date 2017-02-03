@@ -16,6 +16,8 @@ export const ENEMY_MATERIAL = 'enemyMaterial'
 export const WALL_MATERIAL = 'wallMaterial'
 export const COIN_MATERIAL = 'coinMaterial'
 
+export const PHYSICS_DATA = 'physicsData'
+
 // Animation key
 export const DEFAULT = 'default'
 
@@ -34,3 +36,6 @@ export const GAME_IMAGES = [
 
 // Physics Constants
 export const GRAVITY = 800
+
+// Base image size
+export const BASE_SIZE = 25

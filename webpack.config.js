@@ -5,6 +5,7 @@ const PATHS = {
   app: path.join(__dirname, 'app'),
   build: path.join(__dirname, 'build'),
   img: path.join(__dirname, 'assets', 'img'),
+  json: path.join(__dirname, 'assets', 'json'),
   phaser: path.join(phaserModule, 'build/custom/phaser-split.js'),
   pixi: path.join(phaserModule, 'build/custom/pixi.js'),
   p2: path.join(phaserModule, 'build/custom/p2.js')
@@ -21,6 +22,7 @@ module.exports = {
     path.join(PATHS.img, 'wall.png'),
     path.join(PATHS.img, 'coin.png'),
     path.join(PATHS.img, 'lava.png'),
+    path.join(PATHS.json, 'bodies.json'),
     path.join(PATHS.app, 'index.js')
   ],
   output: {
@@ -62,6 +64,10 @@ module.exports = {
       {
         test: /\.(png|jpg)$/,
         loader: 'file?name=img/[name].[ext]'
+      },
+      {
+        test: /\.(json)$/,
+        loader: 'file?name=json/[name].[ext]'
       }
     ]
   },

@@ -11,10 +11,12 @@ import {
   ENEMY_MATERIAL,
   WALL_MATERIAL,
   COIN_MATERIAL,
+  PHYSICS_DATA,
   DEFAULT,
   SPRITE_IMAGES,
   GAME_IMAGES,
-  GRAVITY
+  GRAVITY,
+  BASE_SIZE
 } from './constants'
 
 const _flipSprite = (sprite) => {
@@ -25,11 +27,12 @@ class MainState extends State {
 
   preload() {
     for (const s of SPRITE_IMAGES) {
-      this.game.load.spritesheet(s, `static/img/${s}.png`, 25, 25)
+      this.game.load.spritesheet(s, `static/img/${s}.png`, BASE_SIZE, BASE_SIZE)
     }
     for (const img of GAME_IMAGES) {
       this.game.load.image(img, `static/img/${img}.png`)
     }
+    this.game.load.physics(PHYSICS_DATA, 'static/json/bodies.json')
   }
 
   create() {
@@ -104,7 +107,11 @@ class MainState extends State {
     level.forEach((row, i) => {
       row.split('').forEach((c, j) => {
         if (c === 'x') {
-          const wall = this.walls.create(25 * j + 12.5, 25 * i + 12.5, WALL)
+          const wall = this.walls.create(
+            BASE_SIZE * (j + 0.5),
+            BASE_SIZE * (i + 0.5),
+            WALL
+          )
           //wall.anchor.setTo(0.0, 0.0)
           wall.body.kinematic = true
           wall.body.setCollisionGroup(this.wallsCollisionGroup)
@@ -114,15 +121,23 @@ class MainState extends State {
             this.enemyCollisionGroup
           ])
         } else if (c === '0') {
-          const coin = this.coins.create(25 * j + 12.5, 25 * i + 12.5, COIN)
-          coin.body.static = true
+          const coin = this.coins.create(
+            BASE_SIZE * (j + 0.5),
+            BASE_SIZE * (i + 0.5),
+            COIN
+          )
+          coin.body.kinematic = true
           coin.body.setCollisionGroup(this.coinsCollisionGroup)
           coin.body.setMaterial(coinMaterial)
           coin.body.collides([
             this.playerCollisionGroup
           ])
         } else if (c === '!') {
-          const lava = this.lavas.create(25 * j + 12.5, 25 * i + 12.5, LAVA)
+          const lava = this.lavas.create(
+            BASE_SIZE * (j + 0.5),
+            BASE_SIZE * (i + 0.5),
+            LAVA
+          )
           lava.body.kinematic = true
           lava.body.setMaterial(wallMaterial)
           lava.body.setCollisionGroup(this.lavasCollisionGroup)
@@ -131,11 +146,15 @@ class MainState extends State {
             this.playerCollisionGroup
           ])
         } else if (c === 'r') {
-          const roller = this.rollers.create(25 * j + 12.5, 25 * i + 12.5, ROLLER)
+          const roller = this.rollers.create(
+            BASE_SIZE * (j + 0.5),
+            BASE_SIZE * (i + 0.5),
+            ROLLER
+          )
           roller.animations.add(DEFAULT)
           roller.animations.play(DEFAULT, 15, true)
           roller.body.setMaterial(enemyMaterial)
-          roller.body.setCircle(12.5)
+          roller.body.setCircle(BASE_SIZE / 2)
           roller.body.fixedRotation = true
           roller.body.data.gravityScale = 0.0
           roller.body.velocity.x = this.game.rnd.integerInRange(50, 100)
@@ -148,9 +167,15 @@ class MainState extends State {
             this.lavasCollisionGroup
           ])
         } else if (c === 's') {
-          const slime = this.slimes.create(25 * j + 12.5, 25 * i + 12.5, SLIME)
+          const slime = this.slimes.create(
+            BASE_SIZE * (j + 0.5),
+            BASE_SIZE * (i + 0.5),
+            SLIME
+          )
           slime.animations.add(DEFAULT)
           slime.animations.play(DEFAULT, 15, true)
+          //slime.body.clearShapes()
+          slime.body.loadPolygon(PHYSICS_DATA, SLIME)
           slime.body.setMaterial(enemyMaterial)
           slime.body.fixedRotation = true
           slime.body.velocity.x = this.game.rnd.integerInRange(50, 100)
@@ -168,7 +193,8 @@ class MainState extends State {
     this.playerFacingLeft = true
     this.player = this.players.create(70, 300, PLAYER)
     this.player.animations.add(DEFAULT)
-    this.player.body.setRectangle(25, 25)
+    this.player.body.loadPolygon(PHYSICS_DATA, PLAYER)
+    this.player.body.setRectangle(BASE_SIZE, BASE_SIZE)
     this.player.body.setMaterial(playerMaterial)
     this.player.body.fixedRotation = true
     this.player.body.setCollisionGroup(this.playerCollisionGroup)
