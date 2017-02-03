@@ -17,7 +17,14 @@ Run the following in a terminal (with this repo as the working directory):
 
 Then open `localhost:8080` from your favorite web browser.
 
+### How to define physics bodies (for free)
 
+1. Download the [Physics body editor](https://code.google.com/archive/p/box2d-editor/downloads)
+* Ensure java is installed, unzip the file, open a terminal, and run `java -jar physics-body-editor.jar`
+* Once the GUI is opened, load the image in question
+* Click the edges of the image to define the polygon
+* Save the project as a text file, and then run the [conversion script](python/convert_output.py) to convert the polygon from the box2d format to the phaser format
+* Move the json object to the appropriate assets location, ensure webpack loads the resource, and import it in the codebase
 
 ### Credits
 
