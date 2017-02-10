@@ -1,6 +1,13 @@
 // Game key
 export const MAIN_KEY = 'main'
 
+// Tileset keys
+export const LEVEL1 = 'level1'
+export const BACKGROUND_LAYER = 'backgroundLayer'
+export const BLOCKED_LAYER = 'blockedLayer'
+export const OBJECT_LAYER = 'objectLayer'
+
+
 // Sprite/image keys
 export const PLAYER = 'player'
 export const ROLLER = 'roller'
