@@ -17,6 +17,9 @@ Run the following in a terminal (with this repo as the working directory):
 
 Then open `localhost:8080` from your favorite web browser.
 
+### How to design the level
+* Download [tilemap editor](http://www.mapeditor.org/) and follow the sidescroller tutorial at the bottom
+
 ### How to define physics bodies (for free)
 
 1. Download the [Physics body editor](https://code.google.com/archive/p/box2d-editor/downloads)
@@ -30,4 +33,6 @@ Then open `localhost:8080` from your favorite web browser.
 
 Sprite art: [GrafxKid's platformer baddies](http://opengameart.org/content/platformer-baddies)
 
-Tutorial: http://www.lessmilk.com/tutorial/2d-platformer-phaser
+Tutorials that helped me:
+* http://www.lessmilk.com/tutorial/2d-platformer-phaser
+* https://software.intel.com/en-us/html5/hub/blogs/how-to-make-a-sidescroller-game-with-html5

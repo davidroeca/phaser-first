@@ -1,6 +1,10 @@
-import { State, Physics } from 'phaser'
+import { ScaleManager, State, Physics, Tilemap } from 'phaser'
 import {
   MAIN_KEY,
+  LEVEL1,
+  BACKGROUND_LAYER,
+  BLOCKED_LAYER,
+  OBJECT_LAYER,
   PLAYER,
   ROLLER,
   SLIME,
@@ -23,9 +27,28 @@ const _flipSprite = (sprite) => {
   sprite.scale.x *= -1
 }
 
+const findObjectsByType = (type, tilemap, layerName) => {
+  const tilemapObjects = tilemap.objects[layerName]
+  return tilemapObjects.filter(o => o.type === type).map(o => {
+    const newObj = Object.assign({}, o, {
+      // Need to adjust tile placement based on axis shift in phaser
+      x: o.x + tilemap.tileHeight / 2,
+      y: o.y - tilemap.tileHeight / 2
+    })
+    return newObj
+  })
+}
+
+const createFromTiledObject = (element, group, spriteName) => {
+  return group.create(element.x, element.y, spriteName)
+}
+
 class MainState extends State {
 
   preload() {
+    this.game.load.tilemap(
+      LEVEL1, `static/tilesets/${LEVEL1}.json`, null, Tilemap.TILED_JSON
+    )
     for (const s of SPRITE_IMAGES) {
       this.game.load.spritesheet(s, `static/img/${s}.png`, BASE_SIZE, BASE_SIZE)
     }
@@ -36,11 +59,31 @@ class MainState extends State {
   }
 
   create() {
+    // Set up camera
+    this.game.scale = new ScaleManager(this.game, 500, 500)
+    this.game.scale.scaleMode = ScaleManager.SHOW_ALL
+    this.game.scale.setGameSize(500, 500)
+    // Physics and object creation
     this.game.physics.startSystem(Physics.P2JS)
     this.game.world.enableBody = true
+    this.game.physics.p2.gravity.y = GRAVITY
+    //
+    this.tilemap = this.game.add.tilemap(LEVEL1)
+    for (const s of GAME_IMAGES) {
+      this.tilemap.addTilesetImage(s, s)
+    }
+
+    this.backgroundLayer = this.tilemap.createLayer(BACKGROUND_LAYER)
+    this.backgroundLayer.resizeWorld();
+    // Set collision info on layer
+    this.tilemap.setCollisionBetween(1, 5000, true, BLOCKED_LAYER)
+    this.blockedLayer = this.tilemap.createLayer(BLOCKED_LAYER)
+    this.blockedLayerBodies = this.game.physics.p2.convertTilemap(
+      this.tilemap, this.blockedLayer, true, true
+    )
+
     this.game.physics.p2.setImpactEvents(true)
     this.game.physics.p2.restitution = 1.0
-    this.game.physics.p2.gravity.y = GRAVITY
 
     this.players = this.game.add.group()
     this.walls = this.game.add.group()
@@ -48,13 +91,6 @@ class MainState extends State {
     this.lavas = this.game.add.group()
     this.rollers = this.game.add.group()
     this.slimes = this.game.add.group()
-
-    for (let group of [
-      this.players, this.walls, this.coins, this.lavas, this.rollers, this.slimes
-    ]) {
-      group.enableBody = true
-      group.physicsBodyType = Physics.P2JS
-    }
 
     const playerMaterial = this.game.physics.p2.createMaterial(PLAYER_MATERIAL)
     const enemyMaterial = this.game.physics.p2.createMaterial(ENEMY_MATERIAL)
@@ -74,132 +110,107 @@ class MainState extends State {
     playerWallContact.restitution = 0.0
     playerWallContact.friction = 0.0
 
+    for (const group of [
+      this.players, this.walls, this.coins, this.lavas, this.rollers, this.slimes
+    ]) {
+      group.enableBody = true
+      group.physicsBodyType = Physics.P2JS
+    }
+
+    // Add back
+
     this.wallsCollisionGroup = this.game.physics.p2.createCollisionGroup()
     this.coinsCollisionGroup = this.game.physics.p2.createCollisionGroup()
     this.lavasCollisionGroup = this.game.physics.p2.createCollisionGroup()
     this.enemyCollisionGroup = this.game.physics.p2.createCollisionGroup()
     this.playerCollisionGroup = this.game.physics.p2.createCollisionGroup()
 
+    for (const blockBody of this.blockedLayerBodies) {
+      blockBody.kinematic = true
+      blockBody.setCollisionGroup(this.wallsCollisionGroup)
+      blockBody.setMaterial(wallMaterial)
+      blockBody.collides([
+        this.enemyCollisionGroup,
+        this.playerCollisionGroup
+      ])
+    }
 
-    const level = [
-      'xxxxxxxxx!xxxxxxxxxx',
-      'x                 xx',
-      'x        0  x   0 xx',
-      'x    xxxxxxxxxx   xx',
-      'x             x   xx',
-      'xx       0    xxxxxx',
-      'x       xxx   x    x',
-      'x             xxxx x',
-      'x             x    x',
-      'x  xxxx!     xx   xx',
-      'x                  x',
-      'x           r      x',
-      'x          xxxx    x',
-      'x     s            x',
-      'x                  x',
-      'x   xxxx     r     x',
-      'x            xxxx!!x',
-      'x          xxxxxx!!x',
-      'x  0   r xxxxxxxx!!x',
-      'xxxxxxxxxxxxxxxxx!!x',
-    ]
+    //this.blockedLayer.body.setCollisionGroup(this.wallsCollisionGroup)
 
-    level.forEach((row, i) => {
-      row.split('').forEach((c, j) => {
-        if (c === 'x') {
-          const wall = this.walls.create(
-            BASE_SIZE * (j + 0.5),
-            BASE_SIZE * (i + 0.5),
-            WALL
-          )
-          //wall.anchor.setTo(0.0, 0.0)
-          wall.body.kinematic = true
-          wall.body.setCollisionGroup(this.wallsCollisionGroup)
-          wall.body.setMaterial(wallMaterial)
-          wall.body.collides([
-            this.playerCollisionGroup,
-            this.enemyCollisionGroup
-          ])
-        } else if (c === '0') {
-          const coin = this.coins.create(
-            BASE_SIZE * (j + 0.5),
-            BASE_SIZE * (i + 0.5),
-            COIN
-          )
-          coin.body.kinematic = true
-          coin.body.setCollisionGroup(this.coinsCollisionGroup)
-          coin.body.setMaterial(coinMaterial)
-          coin.body.collides([
-            this.playerCollisionGroup
-          ])
-        } else if (c === '!') {
-          const lava = this.lavas.create(
-            BASE_SIZE * (j + 0.5),
-            BASE_SIZE * (i + 0.5),
-            LAVA
-          )
-          lava.body.kinematic = true
-          lava.body.setMaterial(wallMaterial)
-          lava.body.setCollisionGroup(this.lavasCollisionGroup)
-          lava.body.collides([
-            this.enemyCollisionGroup,
-            this.playerCollisionGroup
-          ])
-        } else if (c === 'r') {
-          const roller = this.rollers.create(
-            BASE_SIZE * (j + 0.5),
-            BASE_SIZE * (i + 0.5),
-            ROLLER
-          )
-          roller.animations.add(DEFAULT)
-          roller.animations.play(DEFAULT, 15, true)
-          roller.body.setMaterial(enemyMaterial)
-          roller.body.setCircle(BASE_SIZE / 2)
-          roller.body.fixedRotation = true
-          roller.body.data.gravityScale = 0.0
-          roller.body.velocity.x = this.game.rnd.integerInRange(50, 100)
-          roller.body.velocity.y = this.game.rnd.integerInRange(75, 100)
-          roller.body.setCollisionGroup(this.enemyCollisionGroup)
-          roller.body.collides([
-            this.enemyCollisionGroup,
-            this.playerCollisionGroup,
-            this.wallsCollisionGroup,
-            this.lavasCollisionGroup
-          ])
-        } else if (c === 's') {
-          const slime = this.slimes.create(
-            BASE_SIZE * (j + 0.5),
-            BASE_SIZE * (i + 0.5),
-            SLIME
-          )
-          slime.animations.add(DEFAULT)
-          slime.animations.play(DEFAULT, 15, true)
-          //slime.body.clearShapes()
-          slime.body.loadPolygon(PHYSICS_DATA, SLIME)
-          slime.body.setMaterial(enemyMaterial)
-          slime.body.fixedRotation = true
-          slime.body.velocity.x = this.game.rnd.integerInRange(50, 100)
-          slime.body.setCollisionGroup(this.enemyCollisionGroup)
-          slime.body.collides([
-            this.enemyCollisionGroup,
-            this.playerCollisionGroup,
-            this.wallsCollisionGroup,
-            this.lavasCollisionGroup
-          ])
-        }
-      })
-    })
+    // Create coins
+    for (const coinObj of findObjectsByType(COIN, this.tilemap, OBJECT_LAYER)) {
+      const coin = createFromTiledObject(coinObj, this.coins, COIN)
+      coin.body.kinematic = true
+      coin.body.setCollisionGroup(this.coinsCollisionGroup)
+      coin.body.setMaterial(coinMaterial)
+      coin.body.collides([
+        this.playerCollisionGroup
+      ])
+    }
+    for (const lavaObj of findObjectsByType(
+      LAVA, this.tilemap, OBJECT_LAYER
+    )) {
+      const lava = createFromTiledObject(lavaObj, this.lavas, LAVA)
+      lava.body.kinematic = true
+      lava.body.setMaterial(wallMaterial)
+      lava.body.setCollisionGroup(this.lavasCollisionGroup)
+      lava.body.collides([
+        this.enemyCollisionGroup,
+        this.playerCollisionGroup
+      ])
+    }
+    for (const slimeObj of findObjectsByType(
+      SLIME, this.tilemap, OBJECT_LAYER
+    )) {
+      const slime = createFromTiledObject(slimeObj, this.slimes, SLIME)
+      slime.animations.add(DEFAULT)
+      slime.animations.play(DEFAULT, 15, true)
+      //slime.body.clearShapes()
+      slime.body.loadPolygon(PHYSICS_DATA, SLIME)
+      slime.body.setMaterial(enemyMaterial)
+      slime.body.fixedRotation = true
+      slime.body.velocity.x = this.game.rnd.integerInRange(50, 100)
+      slime.body.setCollisionGroup(this.enemyCollisionGroup)
+      slime.body.collides([
+        this.enemyCollisionGroup,
+        this.playerCollisionGroup,
+        this.wallsCollisionGroup,
+        this.lavasCollisionGroup
+      ])
+    }
+    for (const rollerObj of findObjectsByType(
+      ROLLER, this.tilemap, OBJECT_LAYER
+    )) {
+      const roller = createFromTiledObject(rollerObj, this.rollers, ROLLER)
+      roller.animations.add(DEFAULT)
+      roller.animations.play(DEFAULT, 15, true)
+      roller.body.setMaterial(enemyMaterial)
+      roller.body.setCircle(BASE_SIZE / 2)
+      roller.body.fixedRotation = true
+      roller.body.data.gravityScale = 0.0
+      roller.body.velocity.x = this.game.rnd.integerInRange(50, 100)
+      roller.body.velocity.y = this.game.rnd.integerInRange(75, 100)
+      roller.body.setCollisionGroup(this.enemyCollisionGroup)
+      roller.body.collides([
+        this.enemyCollisionGroup,
+        this.playerCollisionGroup,
+        this.wallsCollisionGroup,
+        this.lavasCollisionGroup
+      ])
+    }
 
+
+
+    const [playerObj] = findObjectsByType(PLAYER, this.tilemap, OBJECT_LAYER)
+    this.player = createFromTiledObject(playerObj, this.players, PLAYER)
     this.playerFacingLeft = true
-    this.player = this.players.create(70, 300, PLAYER)
+    //this.player = this.players.create(70, 300, PLAYER)
     this.player.animations.add(DEFAULT)
     this.player.body.loadPolygon(PHYSICS_DATA, PLAYER)
     this.player.body.setRectangle(BASE_SIZE, BASE_SIZE)
     this.player.body.setMaterial(playerMaterial)
     this.player.body.fixedRotation = true
     this.player.body.setCollisionGroup(this.playerCollisionGroup)
-
-    // Define the ramifications of each collision
     this.player.body.collides(this.wallsCollisionGroup)
     this.player.body.collides(
       [
@@ -215,12 +226,14 @@ class MainState extends State {
       this
     )
 
-    this.game.physics.p2.updateBoundsCollisionGroup()
-    this.game.stage.backgroundColor = '#3598db'
+    // Define the ramifications of each collision
+
+    this.game.camera.follow(this.player)
     this.cursor = this.game.input.keyboard.createCursorKeys()
   }
 
   update() {
+
     this.player.animations.play(DEFAULT, 30, true)
     if (this.cursor.left.isDown) {
       if (!this.playerFacingLeft) {

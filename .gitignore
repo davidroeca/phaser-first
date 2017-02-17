@@ -41,3 +41,5 @@ build/
 # Python gitignore stuff
 venv/
 
+# Vim
+*.swp

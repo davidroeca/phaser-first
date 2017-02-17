@@ -1,6 +1,13 @@
 // Game key
 export const MAIN_KEY = 'main'
 
+// Tileset keys
+export const LEVEL1 = 'level1'
+export const BACKGROUND_LAYER = 'backgroundLayer'
+export const BLOCKED_LAYER = 'blockedLayer'
+export const OBJECT_LAYER = 'objectLayer'
+
+
 // Sprite/image keys
 export const PLAYER = 'player'
 export const ROLLER = 'roller'
@@ -9,6 +16,7 @@ export const SLIME = 'slime'
 export const COIN = 'coin'
 export const LAVA = 'lava'
 export const WALL = 'wall'
+export const BACKGROUND = 'background'
 
 // Materials
 export const PLAYER_MATERIAL = 'playerMaterial'
@@ -31,7 +39,8 @@ export const SPRITE_IMAGES = [
 export const GAME_IMAGES = [
   COIN,
   LAVA,
-  WALL
+  WALL,
+  BACKGROUND
 ]
 
 // Physics Constants
