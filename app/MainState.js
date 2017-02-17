@@ -32,7 +32,8 @@ const findObjectsByType = (type, tilemap, layerName) => {
   return tilemapObjects.filter(o => o.type === type).map(o => {
     const newObj = Object.assign({}, o, {
       // Need to adjust tile placement based on axis shift in phaser
-      y: o.y - tilemap.tileHeight
+      x: o.x - tilemap.tileHeight / 2,
+      y: o.y - tilemap.tileHeight / 2
     })
     return newObj
   })

@@ -40,8 +40,8 @@
                  "type":"player",
                  "visible":true,
                  "width":25,
-                 "x":155,
-                 "y":316
+                 "x":52,
+                 "y":475
                 }, 
                 {
                  "gid":12,
@@ -56,8 +56,8 @@
                  "type":"slime",
                  "visible":true,
                  "width":25,
-                 "x":525,
-                 "y":410
+                 "x":478,
+                 "y":474
                 }, 
                 {
                  "gid":11,
@@ -72,8 +72,8 @@
                  "type":"lava",
                  "visible":true,
                  "width":25,
-                 "x":791,
-                 "y":330
+                 "x":643,
+                 "y":471
                 }, 
                 {
                  "gid":10,
@@ -88,8 +88,8 @@
                  "type":"coin",
                  "visible":true,
                  "width":25,
-                 "x":324,
-                 "y":364
+                 "x":293,
+                 "y":474
                 }],
          "opacity":1,
          "type":"objectgroup",
