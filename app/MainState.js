@@ -1,4 +1,4 @@
-import { State, Physics, Tilemap } from 'phaser'
+import { ScaleManager, State, Physics, Tilemap } from 'phaser'
 import {
   MAIN_KEY,
   LEVEL1,
@@ -32,7 +32,7 @@ const findObjectsByType = (type, tilemap, layerName) => {
   return tilemapObjects.filter(o => o.type === type).map(o => {
     const newObj = Object.assign({}, o, {
       // Need to adjust tile placement based on axis shift in phaser
-      x: o.x - tilemap.tileHeight / 2,
+      x: o.x + tilemap.tileHeight / 2,
       y: o.y - tilemap.tileHeight / 2
     })
     return newObj
@@ -59,6 +59,11 @@ class MainState extends State {
   }
 
   create() {
+    // Set up camera
+    this.game.scale = new ScaleManager(this.game, 500, 500)
+    this.game.scale.scaleMode = ScaleManager.SHOW_ALL
+    this.game.scale.setGameSize(500, 500)
+    // Physics and object creation
     this.game.physics.startSystem(Physics.P2JS)
     this.game.world.enableBody = true
     this.game.physics.p2.gravity.y = GRAVITY
@@ -142,7 +147,9 @@ class MainState extends State {
         this.playerCollisionGroup
       ])
     }
-    for (const lavaObj of findObjectsByType(LAVA, this.tilemap, OBJECT_LAYER)) {
+    for (const lavaObj of findObjectsByType(
+      LAVA, this.tilemap, OBJECT_LAYER
+    )) {
       const lava = createFromTiledObject(lavaObj, this.lavas, LAVA)
       lava.body.kinematic = true
       lava.body.setMaterial(wallMaterial)
@@ -152,7 +159,9 @@ class MainState extends State {
         this.playerCollisionGroup
       ])
     }
-    for (const slimeObj of findObjectsByType(SLIME, this.tilemap, OBJECT_LAYER)) {
+    for (const slimeObj of findObjectsByType(
+      SLIME, this.tilemap, OBJECT_LAYER
+    )) {
       const slime = createFromTiledObject(slimeObj, this.slimes, SLIME)
       slime.animations.add(DEFAULT)
       slime.animations.play(DEFAULT, 15, true)
@@ -169,28 +178,28 @@ class MainState extends State {
         this.lavasCollisionGroup
       ])
     }
+    for (const rollerObj of findObjectsByType(
+      ROLLER, this.tilemap, OBJECT_LAYER
+    )) {
+      const roller = createFromTiledObject(rollerObj, this.rollers, ROLLER)
+      roller.animations.add(DEFAULT)
+      roller.animations.play(DEFAULT, 15, true)
+      roller.body.setMaterial(enemyMaterial)
+      roller.body.setCircle(BASE_SIZE / 2)
+      roller.body.fixedRotation = true
+      roller.body.data.gravityScale = 0.0
+      roller.body.velocity.x = this.game.rnd.integerInRange(50, 100)
+      roller.body.velocity.y = this.game.rnd.integerInRange(75, 100)
+      roller.body.setCollisionGroup(this.enemyCollisionGroup)
+      roller.body.collides([
+        this.enemyCollisionGroup,
+        this.playerCollisionGroup,
+        this.wallsCollisionGroup,
+        this.lavasCollisionGroup
+      ])
+    }
 
 
-          //const roller = this.rollers.create(
-            //BASE_SIZE * (j + 0.5),
-            //BASE_SIZE * (i + 0.5),
-            //ROLLER
-          //)
-          //roller.animations.add(DEFAULT)
-          //roller.animations.play(DEFAULT, 15, true)
-          //roller.body.setMaterial(enemyMaterial)
-          //roller.body.setCircle(BASE_SIZE / 2)
-          //roller.body.fixedRotation = true
-          //roller.body.data.gravityScale = 0.0
-          //roller.body.velocity.x = this.game.rnd.integerInRange(50, 100)
-          //roller.body.velocity.y = this.game.rnd.integerInRange(75, 100)
-          //roller.body.setCollisionGroup(this.enemyCollisionGroup)
-          //roller.body.collides([
-            //this.enemyCollisionGroup,
-            //this.playerCollisionGroup,
-            //this.wallsCollisionGroup,
-            //this.lavasCollisionGroup
-          //])
 
     const [playerObj] = findObjectsByType(PLAYER, this.tilemap, OBJECT_LAYER)
     this.player = createFromTiledObject(playerObj, this.players, PLAYER)
@@ -219,8 +228,7 @@ class MainState extends State {
 
     // Define the ramifications of each collision
 
-    //this.game.physics.p2.updateBoundsCollisionGroup()
-    //this.game.stage.backgroundColor = '#3598db'
+    this.game.camera.follow(this.player)
     this.cursor = this.game.input.keyboard.createCursorKeys()
   }
 

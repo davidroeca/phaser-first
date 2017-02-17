@@ -32,7 +32,7 @@ export const DEFAULT = 'default'
 // Sprite/image Collections
 export const SPRITE_IMAGES = [
   PLAYER,
-  //ROLLER,
+  ROLLER,
   SLIME
 ]
 
