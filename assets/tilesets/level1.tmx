@@ -67,9 +67,9 @@
 </data>
  </layer>
  <objectgroup name="objectLayer">
-  <object id="20" type="player" gid="3" x="137" y="473" width="25" height="25"/>
-  <object id="23" type="slime" gid="12" x="523" y="470" width="25" height="25"/>
-  <object id="24" type="lava" gid="11" x="800" y="475" width="25" height="25"/>
-  <object id="26" type="coin" gid="10" x="317" y="470" width="25" height="25"/>
+  <object id="20" type="player" gid="3" x="155" y="316" width="25" height="25"/>
+  <object id="23" type="slime" gid="12" x="525" y="410" width="25" height="25"/>
+  <object id="24" type="lava" gid="11" x="791" y="330" width="25" height="25"/>
+  <object id="26" type="coin" gid="10" x="324" y="364" width="25" height="25"/>
  </objectgroup>
 </map>

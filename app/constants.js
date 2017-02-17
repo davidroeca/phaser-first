@@ -16,6 +16,7 @@ export const SLIME = 'slime'
 export const COIN = 'coin'
 export const LAVA = 'lava'
 export const WALL = 'wall'
+export const BACKGROUND = 'background'
 
 // Materials
 export const PLAYER_MATERIAL = 'playerMaterial'
@@ -31,14 +32,15 @@ export const DEFAULT = 'default'
 // Sprite/image Collections
 export const SPRITE_IMAGES = [
   PLAYER,
-  ROLLER,
+  //ROLLER,
   SLIME
 ]
 
 export const GAME_IMAGES = [
   COIN,
   LAVA,
-  WALL
+  WALL,
+  BACKGROUND
 ]
 
 // Physics Constants

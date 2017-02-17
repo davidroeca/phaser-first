@@ -23,6 +23,7 @@ module.exports = {
     path.join(PATHS.img, 'wall.png'),
     path.join(PATHS.img, 'coin.png'),
     path.join(PATHS.img, 'lava.png'),
+    path.join(PATHS.img, 'background.png'),
     path.join(PATHS.json, 'bodies.json'),
     path.join(PATHS.tilesets, 'level1.json'),
     path.join(PATHS.app, 'index.js')

@@ -28,13 +28,8 @@ const _flipSprite = (sprite) => {
 }
 
 const findObjectsByType = (type, tilemap, layerName) => {
-  console.log(type)
-  console.log(tilemap)
-  console.log(layerName)
   const tilemapObjects = tilemap.objects[layerName]
   return tilemapObjects.filter(o => o.type === type).map(o => {
-    console.log('hi!!')
-    console.log(o)
     const newObj = Object.assign({}, o, {
       // Need to adjust tile placement based on axis shift in phaser
       y: o.y - tilemap.tileHeight
@@ -65,9 +60,24 @@ class MainState extends State {
   create() {
     this.game.physics.startSystem(Physics.P2JS)
     this.game.world.enableBody = true
+    this.game.physics.p2.gravity.y = GRAVITY
+    //
+    this.tilemap = this.game.add.tilemap(LEVEL1)
+    for (const s of GAME_IMAGES) {
+      this.tilemap.addTilesetImage(s, s)
+    }
+
+    this.backgroundLayer = this.tilemap.createLayer(BACKGROUND_LAYER)
+    this.backgroundLayer.resizeWorld();
+    // Set collision info on layer
+    this.tilemap.setCollisionBetween(1, 5000, true, BLOCKED_LAYER)
+    this.blockedLayer = this.tilemap.createLayer(BLOCKED_LAYER)
+    this.blockedLayerBodies = this.game.physics.p2.convertTilemap(
+      this.tilemap, this.blockedLayer, true, true
+    )
+
     this.game.physics.p2.setImpactEvents(true)
     this.game.physics.p2.restitution = 1.0
-    this.game.physics.p2.gravity.y = GRAVITY
 
     this.players = this.game.add.group()
     this.walls = this.game.add.group()
@@ -87,40 +97,40 @@ class MainState extends State {
     playerCoinContact.restitution = 0.0
     playerCoinContact.friction = 0.0
 
-    //const playerWallContact = this.game.physics.p2.createContactMaterial(
-      //playerMaterial,
-      //wallMaterial
-    //)
-    //playerWallContact.restitution = 0.0
-    //playerWallContact.friction = 0.0
-
-    //this.wallsCollisionGroup = this.game.physics.p2.createCollisionGroup()
-    this.coinsCollisionGroup = this.game.physics.p2.createCollisionGroup()
-    this.lavasCollisionGroup = this.game.physics.p2.createCollisionGroup()
-    this.enemyCollisionGroup = this.game.physics.p2.createCollisionGroup()
-    this.playerCollisionGroup = this.game.physics.p2.createCollisionGroup()
-
-    this.tilemap = this.game.add.tilemap(LEVEL1)
-    this.backgroundLayer = this.tilemap.createLayer(BACKGROUND_LAYER)
-    // Add back
-    this.game.physics.p2.convertTilemap(
-      this.tilemap, BLOCKED_LAYER, true, true
+    const playerWallContact = this.game.physics.p2.createContactMaterial(
+      playerMaterial,
+      wallMaterial
     )
-    this.blockedLayer = this.tilemap.createLayer(BLOCKED_LAYER)
-    this.backgroundLayer.resizeWorld();
+    playerWallContact.restitution = 0.0
+    playerWallContact.friction = 0.0
 
-    // Set collision info on layer
-    this.tilemap.setCollisionBetween(1, 5000, true, BLOCKED_LAYER)
-
-    for (const s of [COIN, LAVA, WALL]) {
-      this.tilemap.addTilesetImage(s, s)
-    }
     for (const group of [
       this.players, this.walls, this.coins, this.lavas, this.rollers, this.slimes
     ]) {
       group.enableBody = true
       group.physicsBodyType = Physics.P2JS
     }
+
+    // Add back
+
+    this.wallsCollisionGroup = this.game.physics.p2.createCollisionGroup()
+    this.coinsCollisionGroup = this.game.physics.p2.createCollisionGroup()
+    this.lavasCollisionGroup = this.game.physics.p2.createCollisionGroup()
+    this.enemyCollisionGroup = this.game.physics.p2.createCollisionGroup()
+    this.playerCollisionGroup = this.game.physics.p2.createCollisionGroup()
+
+    for (const blockBody of this.blockedLayerBodies) {
+      blockBody.kinematic = true
+      blockBody.setCollisionGroup(this.wallsCollisionGroup)
+      blockBody.setMaterial(wallMaterial)
+      blockBody.collides([
+        this.enemyCollisionGroup,
+        this.playerCollisionGroup
+      ])
+    }
+
+    //this.blockedLayer.body.setCollisionGroup(this.wallsCollisionGroup)
+
     // Create coins
     for (const coinObj of findObjectsByType(COIN, this.tilemap, OBJECT_LAYER)) {
       const coin = createFromTiledObject(coinObj, this.coins, COIN)
@@ -134,7 +144,7 @@ class MainState extends State {
     for (const lavaObj of findObjectsByType(LAVA, this.tilemap, OBJECT_LAYER)) {
       const lava = createFromTiledObject(lavaObj, this.lavas, LAVA)
       lava.body.kinematic = true
-      //lava.body.setMaterial(wallMaterial)
+      lava.body.setMaterial(wallMaterial)
       lava.body.setCollisionGroup(this.lavasCollisionGroup)
       lava.body.collides([
         this.enemyCollisionGroup,
@@ -143,7 +153,6 @@ class MainState extends State {
     }
     for (const slimeObj of findObjectsByType(SLIME, this.tilemap, OBJECT_LAYER)) {
       const slime = createFromTiledObject(slimeObj, this.slimes, SLIME)
-      console.log(slime)
       slime.animations.add(DEFAULT)
       slime.animations.play(DEFAULT, 15, true)
       //slime.body.clearShapes()
@@ -155,7 +164,7 @@ class MainState extends State {
       slime.body.collides([
         this.enemyCollisionGroup,
         this.playerCollisionGroup,
-        //this.wallsCollisionGroup,
+        this.wallsCollisionGroup,
         this.lavasCollisionGroup
       ])
     }
@@ -182,40 +191,40 @@ class MainState extends State {
             //this.lavasCollisionGroup
           //])
 
-    for (const playerObj of findObjectsByType(PLAYER, this.tilemap, OBJECT_LAYER)) {
-      this.player = createFromTiledObject(playerObj, this.players, PLAYER)
-      this.playerFacingLeft = true
-      //this.player = this.players.create(70, 300, PLAYER)
-      this.player.animations.add(DEFAULT)
-      this.player.body.loadPolygon(PHYSICS_DATA, PLAYER)
-      this.player.body.setRectangle(BASE_SIZE, BASE_SIZE)
-      this.player.body.setMaterial(playerMaterial)
-      this.player.body.fixedRotation = true
-      this.player.body.setCollisionGroup(this.playerCollisionGroup)
-      //this.player.body.collides(this.wallsCollisionGroup)
-      this.player.body.collides(
-        [
-          this.lavasCollisionGroup,
-          this.enemyCollisionGroup
-        ],
-        this.restart,
-        this
-      )
-      this.player.body.collides(
-        this.coinsCollisionGroup,
-        this.takeCoin,
-        this
-      )
-    }
+    const [playerObj] = findObjectsByType(PLAYER, this.tilemap, OBJECT_LAYER)
+    this.player = createFromTiledObject(playerObj, this.players, PLAYER)
+    this.playerFacingLeft = true
+    //this.player = this.players.create(70, 300, PLAYER)
+    this.player.animations.add(DEFAULT)
+    this.player.body.loadPolygon(PHYSICS_DATA, PLAYER)
+    this.player.body.setRectangle(BASE_SIZE, BASE_SIZE)
+    this.player.body.setMaterial(playerMaterial)
+    this.player.body.fixedRotation = true
+    this.player.body.setCollisionGroup(this.playerCollisionGroup)
+    this.player.body.collides(this.wallsCollisionGroup)
+    this.player.body.collides(
+      [
+        this.lavasCollisionGroup,
+        this.enemyCollisionGroup
+      ],
+      this.restart,
+      this
+    )
+    this.player.body.collides(
+      this.coinsCollisionGroup,
+      this.takeCoin,
+      this
+    )
 
     // Define the ramifications of each collision
 
-    this.game.physics.p2.updateBoundsCollisionGroup()
-    this.game.stage.backgroundColor = '#3598db'
+    //this.game.physics.p2.updateBoundsCollisionGroup()
+    //this.game.stage.backgroundColor = '#3598db'
     this.cursor = this.game.input.keyboard.createCursorKeys()
   }
 
   update() {
+
     this.player.animations.play(DEFAULT, 30, true)
     if (this.cursor.left.isDown) {
       if (!this.playerFacingLeft) {
